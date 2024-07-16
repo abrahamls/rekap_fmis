@@ -13,24 +13,15 @@ import (
 )
 
 var (
-	// intFlag  int
 	pathFlag string
-
-// boolFlag bool
 )
 
 func main() {
-	//define the arguments for command line
-	// flag.IntVar(&intFlag, "int", 1234, "help message")
+	//Parsing argument
 	flag.StringVar(&pathFlag, "path", "default", "help message")
-	// flag.BoolVar(&boolFlag, "bool", false, "help message")
 	flag.Parse()
 
-	// fmt.Println("intFlag value is: ", intFlag)
-	// fmt.Println("strFlag value is: ", strFlag)
-	// fmt.Println("boolFlag value is: ", boolFlag)
-
-	//get the file
+	//open the file
 	// filePath := "C:/Users/abrah/rekap_fmis/rekap_wsl.xlsx"
 	filePath := pathFlag
 	f, err := excelize.OpenFile(filePath)
@@ -67,15 +58,6 @@ func main() {
 
 	//call the struct method to fix the format before grouping the data by the dbh
 	formated := unformatedData.FormatRow()
-	// for i, v := range formated.AllData {
-	// 	fmt.Printf("%v -->  %+v \n", i, v)
-	// }
-
-	//call the struct method to group the data by the dbh and count the sum and height average
-	// grouped := formated.GroupByDHB()
-	// for i, v := range grouped.AllData {
-	// 	fmt.Printf("%v -->  %+v: \n", i, v)
-	// }
 
 	//init []convertedData struct to save data in excel
 	var AllConvertedData []ConvertedData
@@ -133,32 +115,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// f.SetCellValue(sheetName, "A1", "Feat ID")
-	// f.SetCellValue(sheetName, "B1", "Old Comp")
-	// f.SetCellValue(sheetName, "C1", "Survey")
-	// f.SetCellValue(sheetName, "D1", "Plot No")
-	// f.SetCellValue(sheetName, "E1", "DBH")
-	// f.SetCellValue(sheetName, "F1", "Main St")
-	// f.SetCellValue(sheetName, "G1", "Sec St")
-	// f.SetCellValue(sheetName, "H1", "Fallen St")
-	// f.SetCellValue(sheetName, "I1", "Sick St")
-	// f.SetCellValue(sheetName, "J1", "DR")
-	// f.SetCellValue(sheetName, "K1", "DR Freq")
-	// f.SetCellValue(sheetName, "L1", "Dead St")
-	// f.SetCellValue(sheetName, "M1", "HT1")
-	// f.SetCellValue(sheetName, "N1", "HT2")
-	// f.SetCellValue(sheetName, "O1", "Planted_date")
-	// f.SetCellValue(sheetName, "P1", "PHI_survey")
-	// f.SetCellValue(sheetName, "Q1", "Plan Harvesting")
-	// f.SetCellValue(sheetName, "R1", "Remark")
-
-	// for i, v := range AllConvertedData {
-	// 	if v.DBH == 0 {
-	// 		AllConvertedData = append(AllConvertedData[:i], AllConvertedData[:i+1]...)
-	// 		AllConvertedData = append(AllConvertedData, v)
-	// 	}
-	// }
 
 	//sorting dbh that == 0 to be on the last rows
 	indexCount := 0
