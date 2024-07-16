@@ -5,15 +5,18 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/xuri/excelize/v2"
 )
 
 var (
-	intFlag  int
+	// intFlag  int
 	pathFlag string
-	boolFlag bool
+
+// boolFlag bool
 )
 
 func main() {
@@ -28,6 +31,7 @@ func main() {
 	// fmt.Println("boolFlag value is: ", boolFlag)
 
 	//get the file
+	// filePath := "C:/Users/abrah/rekap_fmis/rekap_wsl.xlsx"
 	filePath := pathFlag
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
@@ -77,6 +81,8 @@ func main() {
 	var AllConvertedData []ConvertedData
 
 	groupedData := formated.GroupBy()
+
+	// Count total stem and the average of height
 	for dbh, stem := range groupedData {
 		mainStemCount := 0
 		var totalHeight float64
@@ -91,11 +97,15 @@ func main() {
 				})
 			}
 		} else {
-			for _, p := range stem {
+			allRemarks := make([]string, 0, len(stem))
+			for j, p := range stem {
 				if p.ThirdStem == 0 {
 					mainStemCount++
 				}
 				totalHeight += p.Height
+				if stem[j].Remark != "" {
+					allRemarks = append(allRemarks, stem[j].Remark)
+				}
 			}
 			secondStemCount := len(stem) - mainStemCount
 			heightAvg := totalHeight / float64(len(stem))
@@ -108,54 +118,65 @@ func main() {
 				MainStem:   mainStemCount,
 				SecondStem: secondStemCount,
 				HT1:        roundFloat(heightAvg, 1),
-				Remark:     stem[0].Remark,
+				Remark:     strings.Join(allRemarks, ", "),
 			})
 		}
+		sort.Slice(AllConvertedData, func(i, j int) bool {
+			return AllConvertedData[i].DBH < AllConvertedData[j].DBH
+		})
 	}
-
-	// for i, row := range AllConvertedData {
-	// 	fmt.Printf("no %v:  %+v \n", i, row)
-	// }
 
 	//save file
-	sheetName := "Sheet3"
-	index, err := f.NewSheet("sheet3")
+	sheetName := "Sheet1"
+
+	rows, err = f.GetRows(sheetName)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
-	f.SetCellValue(sheetName, "A1", "Feat ID")
-	f.SetCellValue(sheetName, "B1", "Old Comp")
-	f.SetCellValue(sheetName, "C1", "Survey")
-	f.SetCellValue(sheetName, "D1", "Plot No")
-	f.SetCellValue(sheetName, "E1", "DBH")
-	f.SetCellValue(sheetName, "F1", "Main St")
-	f.SetCellValue(sheetName, "G1", "Sec St")
-	f.SetCellValue(sheetName, "H1", "Fallen St")
-	f.SetCellValue(sheetName, "I1", "Sick St")
-	f.SetCellValue(sheetName, "J1", "DR")
-	f.SetCellValue(sheetName, "K1", "DR Freq")
-	f.SetCellValue(sheetName, "L1", "Dead St")
-	f.SetCellValue(sheetName, "M1", "HT1")
-	f.SetCellValue(sheetName, "N1", "HT2")
-	f.SetCellValue(sheetName, "O1", "Planted_date")
-	f.SetCellValue(sheetName, "P1", "PHI_survey")
-	f.SetCellValue(sheetName, "Q1", "Plan Harvesting")
-	f.SetCellValue(sheetName, "R1", "Remark")
+	// f.SetCellValue(sheetName, "A1", "Feat ID")
+	// f.SetCellValue(sheetName, "B1", "Old Comp")
+	// f.SetCellValue(sheetName, "C1", "Survey")
+	// f.SetCellValue(sheetName, "D1", "Plot No")
+	// f.SetCellValue(sheetName, "E1", "DBH")
+	// f.SetCellValue(sheetName, "F1", "Main St")
+	// f.SetCellValue(sheetName, "G1", "Sec St")
+	// f.SetCellValue(sheetName, "H1", "Fallen St")
+	// f.SetCellValue(sheetName, "I1", "Sick St")
+	// f.SetCellValue(sheetName, "J1", "DR")
+	// f.SetCellValue(sheetName, "K1", "DR Freq")
+	// f.SetCellValue(sheetName, "L1", "Dead St")
+	// f.SetCellValue(sheetName, "M1", "HT1")
+	// f.SetCellValue(sheetName, "N1", "HT2")
+	// f.SetCellValue(sheetName, "O1", "Planted_date")
+	// f.SetCellValue(sheetName, "P1", "PHI_survey")
+	// f.SetCellValue(sheetName, "Q1", "Plan Harvesting")
+	// f.SetCellValue(sheetName, "R1", "Remark")
+
+	// for i, v := range AllConvertedData {
+	// 	if v.DBH == 0 {
+	// 		AllConvertedData = append(AllConvertedData[:i], AllConvertedData[:i+1]...)
+	// 		AllConvertedData = append(AllConvertedData, v)
+	// 	}
+	// }
+
+	//sorting dbh that == 0 to be on the last rows
+	indexCount := 0
+	for _, v := range AllConvertedData {
+		if v.DBH == 0 {
+			indexCount++
+		}
+	}
+	temp := AllConvertedData[indexCount:]
+	AllConvertedData = append(temp, AllConvertedData[:indexCount]...)
+
+	// for i, v := range AllConvertedData {
+	// 	fmt.Printf("%+v --> %+v \n", i, v)
+	// }
 
 	for i, data := range AllConvertedData {
-		row := i + 2 // Excel rows start from 1, so offset by 2
-		if data.DBH == 0 {
-			f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), data.FeatID)
-			f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), data.OldComp)
-			f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), data.Survey)
-			f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), data.PlotNo)
-			f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), "-")
-			f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), "-")
-			f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), "-")
-			f.SetCellValue(sheetName, fmt.Sprintf("R%d", row), data.Remark)
-		} else {
+		row := len(rows) + i + 1 // Excel rows start from 1, so offset by 2
+		if data.DBH > 0 {
 			f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), data.FeatID)
 			f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), data.OldComp)
 			f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), data.Survey)
@@ -165,10 +186,19 @@ func main() {
 			f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), data.SecondStem)
 			f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), data.HT1)
 			f.SetCellValue(sheetName, fmt.Sprintf("R%d", row), data.Remark)
+		} else {
+			f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), data.FeatID)
+			f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), data.OldComp)
+			f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), data.Survey)
+			f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), data.PlotNo)
+			f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), "-")
+			f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), "-")
+			f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), "-")
+			f.SetCellValue(sheetName, fmt.Sprintf("R%d", row), data.Remark)
 		}
 	}
 
-	f.SetActiveSheet(index)
+	f.SetActiveSheet(len(rows) + len(AllConvertedData))
 
 	if err := f.SaveAs(filePath); err != nil {
 		log.Fatal(err)
