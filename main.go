@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os/exec"
 	"sort"
 	"strconv"
 	"strings"
@@ -160,6 +161,17 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Printf("Excel berhasil di save di : %s ", filePath)
+
+	// Replace "example.xlsx" with the path to your Excel file
+	excelFile := filePath
+
+	// Command to open the file with the default application (Excel on Windows)
+	cmd := exec.Command("cmd", "/c", "start", excelFile)
+
+	// Run the command
+	if err := cmd.Run(); err != nil {
+		log.Fatalf("Error opening Excel file: %v", err)
+	}
 }
 
 func excelToJson(rows [][]string) ([]byte, error) {
