@@ -43,6 +43,10 @@ type AllRawData struct {
 	AllData []RawData
 }
 
+type Compartment struct {
+	Plots []ConvertedData
+}
+
 func (r *AllRawData) FormatRow() *AllRawData {
 	for i, v := range r.AllData {
 		if v.SecondStem > 1 {

@@ -189,6 +189,5 @@ func excelToJson(rows [][]string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return jsonData, nil
 }
